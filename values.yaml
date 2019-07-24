@@ -1,0 +1,71 @@
+global:
+  hosts:
+    domain: 192.171.139.109.nip.io
+  shell:
+    port: 8022
+
+certmanager-issuer:
+  email: pablo.celaya-crespo@stfc.ac.uk
+  server: https://acme-v02.api.letsencrypt.org/directory
+
+nginx-ingress:
+  controller:
+    hostNetwork: true
+    kind: DaemonSet
+    daemonset:
+      useHostPort: true
+    # Increase the proxy buffer size
+    #   https://github.com/int128/kubernetes-dashboard-proxy/issues/2
+    config:
+      proxy-buffer-size: "64k"
+    # The controller tolerates the etcd and controlplane node-role taints
+    tolerations:
+      - key: node-role.kubernetes.io/etcd
+        operator: Exists
+      - key: node-role.kubernetes.io/controlplane
+        operator: Exists
+    # But we specifically target controlplane nodes
+    nodeSelector:
+      node-role.kubernetes.io/controlplane: "true"
+    # We are using the host network, so just create a ClusterIP service
+    service:
+      type: ClusterIP
+      externalTrafficPolicy: ""
+    # Make sure to use the RollingUpdate update strategy
+    updateStrategy:
+      type: RollingUpdate
+
+gitlab-runner:
+  runners:
+    privileged: true
+
+gitlab:
+  gitaly:
+    persistence:
+      size: 50Gi
+      volumeName: pv-gitaly
+      storageClass: manual
+postgresql:
+  persistence:
+    size: 8Gi
+    volumeName: pv-postgre
+    storageClass: manual
+  existingSecret: false
+  postgresPassword: password1234
+minio:
+  persistence:
+    size: 10Gi
+    volumeName: pv-minio
+    storageClass: manual
+redis:
+  persistence:
+    size: 5Gi
+    volumeName: pv-redis
+    storageClass: manual
+
+prometheus:
+  server:
+    persistentVolume:
+      size: 8Gi
+      volumeName: pv-prometheus
+      storageClass: manual
