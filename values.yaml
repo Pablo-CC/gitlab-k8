@@ -1,6 +1,6 @@
 global:
   hosts:
-    domain: 192.171.139.109.nip.io
+    domain: xxx.xxx.xxx.xxx.nip.io
   shell:
     port: 8022
 
